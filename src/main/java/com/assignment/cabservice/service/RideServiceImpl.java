@@ -150,31 +150,31 @@ public class RideServiceImpl implements RideService{
 
 
     @Override
-    public RideDTO bookRideUpdated(String riderId, String rideId) {
-        log.info("riderId {}, rideId{}", riderId, rideId);
-        Ride ride = rideRepository.findById(rideId).orElse(new Ride());
-        // Check if rider is already present
-        if (ride.getRider() != null) {
-            throw new RideAlreadyBookedException("Ride already booked for rider with ID: " + riderId);
-        }
+    // public RideDTO bookRideUpdated(String riderId, String rideId) {
+    //     log.info("riderId {}, rideId{}", riderId, rideId);
+    //     Ride ride = rideRepository.findById(rideId).orElse(new Ride());
+    //     // Check if rider is already present
+    //     if (ride.getRider() != null) {
+    //         throw new RideAlreadyBookedException("Ride already booked for rider with ID: " + riderId);
+    //     }
 
-        RiderDTO riderDTO = riderService.getRiderById(riderId);
-        Rider rider = new Rider();
-        BeanUtils.copyProperties(riderDTO, rider);
-        ride.setRider(rider);
+    //     RiderDTO riderDTO = riderService.getRiderById(riderId);
+    //     Rider rider = new Rider();
+    //     BeanUtils.copyProperties(riderDTO, rider);
+    //     ride.setRider(rider);
 
-        LocalDateTime currentTime = LocalDateTime.now();
-        ride.setStartTime(currentTime);
-        ride.setEndTime(currentTime.plusMinutes(ride.getEstimatedRideTime()));
-        ride.setAvailableSeats(ride.getAvailableSeats() - 1);
-        ride.setRideType(RideType.COMPLETED);
-        rideRepository.save(ride);
-        RideDTO rideDTO = new RideDTO();
-        BeanUtils.copyProperties(ride, rideDTO);
-        rideDTO.setDriverId(ride.getDriver().getUserId());
-        rideDTO.setRiderId(riderId);
-        return rideDTO;
-    }
+    //     LocalDateTime currentTime = LocalDateTime.now();
+    //     ride.setStartTime(currentTime);
+    //     ride.setEndTime(currentTime.plusMinutes(ride.getEstimatedRideTime()));
+    //     ride.setAvailableSeats(ride.getAvailableSeats() - 1);
+    //     ride.setRideType(RideType.COMPLETED);
+    //     rideRepository.save(ride);
+    //     RideDTO rideDTO = new RideDTO();
+    //     BeanUtils.copyProperties(ride, rideDTO);
+    //     rideDTO.setDriverId(ride.getDriver().getUserId());
+    //     rideDTO.setRiderId(riderId);
+    //     return rideDTO;
+    // }
 
     @Override
     public List<RideDTO> allRidesByDriver(String driverId) {
@@ -212,7 +212,7 @@ public class RideServiceImpl implements RideService{
 
     @Override
     public int getFuelSavedFromAllRides(String driverId) {
-        List<RideDTO> rideDTOList = allRidesByDriver(driverId);
+        List<RideDTO> rideDTOList = allRidesByDriver(driverId).stream().filter(rideDTO -> rideDTO.getRideType() == RideType.COMPLETED).collect(Collectors.toList());;
         return rideDTOList.stream()
                 .mapToInt(RideDTO::getEstimatedRideTime)
                 .reduce(0, Integer::sum);
